@@ -8,13 +8,16 @@ import sys
 import cv2
 import numpy as np
 import pyaudio
+import PIL as pil
+
+palette = np.array([(255, 0, 0), (0, 255, 0), (0, 0, 255)])
 
 def video_stream(client_socket):
     pygame.init()
     display_surface = None
     data = b""
     header_size = struct.calcsize("B") + struct.calcsize("L")  # 1-byte type + 4-byte size
-
+    # pygame.display.set_palette(palette)
     while True:
         # Receive header
         while len(data) < header_size:
@@ -43,10 +46,12 @@ def video_stream(client_socket):
             frame = cv2.imdecode(buffer, cv2.IMREAD_COLOR)
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             frame = cv2.transpose(frame)
+            # frame = dithering(frame, 8) # doesnt work rn its PIL based we gotta do dithering in python
             frame = pygame.surfarray.make_surface(frame)
 
             if display_surface is None:
-                display_surface = pygame.display.set_mode((frame.get_width(), frame.get_height()))
+                #display_surface = pygame.display.set_mode((frame.get_width(), frame.get_height()))
+                display_surface = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -62,7 +67,8 @@ def video_stream(client_socket):
                 message_size = struct.pack("L", len(data_to_send))
                 message_type = struct.pack("B", 2)  # Message type 2 for float array
                 client_socket.sendall(message_type + message_size + data_to_send)
-
+            
+           # display_surface.set_palette(palette) #dont work becuase colors arent indexed, likely due to the palette variable being declared incorrectly or something
             display_surface.blit(frame, (0, 0))
             pygame.display.update()
         else:
@@ -113,6 +119,29 @@ def main():
 
     video_thread.join()
     audio_thread.join()
+
+def get_new_val(old_val, nc): #dithering related
+    return np.round(old_val * (nc - 1)) / (nc - 1)
+
+def dithering(thisFrame, ditherStrength):
+    width, height = thisFrame.size
+    arr = np.array(thisFrame, dtype=float) / 255
+    for ir in range(height):
+        for ic in range(width):
+            old_val = arr[ir, ic].copy()
+            new_val = get_new_val(old_val, ditherStrength)
+            arr[ir, ic] = new_val
+            err = old_val - new_val
+            if ic < width - 1:
+                arr[ir, ic+1] += err * 7/16
+            if ir < height - 1:
+                if ic > 0:
+                    arr[ir+1, ic-1] += err * 3/16
+                arr[ir+1, ic] += err * 5/16
+                if ic < width - 1:
+                    arr[ir+1, ic+1] += err / 16
+    carr = np.array(arr/np.max(arr, axis=(0,1)) * 255, dtype=np.uint8)
+    return pil.fromarray(carr)
 
 if __name__ == '__main__':
     main()

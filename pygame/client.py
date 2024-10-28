@@ -13,6 +13,7 @@ def video_stream(client_socket):
         ret, frame = vid.read()
         if not ret:
             break
+        frame = cv2.resize(frame, (1024, 600))
         encoded, buffer = cv2.imencode('.jpg', frame, [int(cv2.IMWRITE_JPEG_QUALITY), 90])
         data = pickle.dumps(buffer)
         message_size = struct.pack("L", len(data))
