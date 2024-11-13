@@ -1,0 +1,1 @@
+redo this without pygame it might be the cause of slowdowns

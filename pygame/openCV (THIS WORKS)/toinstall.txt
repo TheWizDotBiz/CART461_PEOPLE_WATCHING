@@ -1,0 +1,4 @@
+pip install opencv-python opencv-python-headless pygame pyaudio numpy
+to run
+python script.py <Device_2_IP> <Port>
+python script.py <Device_B_IP> 5000 6000 <- its this one
