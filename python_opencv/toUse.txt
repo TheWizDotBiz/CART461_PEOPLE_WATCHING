@@ -1,0 +1,2 @@
+python streamer8.py <IP ADDRESS OF OTHER DEVICE RUNNING THIS SCRIPT> 5000 6000
+forgot exact requirements but it should be OpenCV, numpy, pyaudio and socket iirc
