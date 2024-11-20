@@ -1,2 +1,4 @@
 python streamer8.py <IP ADDRESS OF OTHER DEVICE RUNNING THIS SCRIPT> 5000 6000
 forgot exact requirements but it should be OpenCV, numpy, pyaudio and socket iirc
+
+for streamer12.py (latest) you dont need to punch 2 port numbers just type python streamer12.py IPADRESS 5000 and u should be golden
